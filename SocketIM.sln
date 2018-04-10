@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27428.2027
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "SocketIM.Server", "SocketIM.Server\SocketIM.Server.vbproj", "{0F92B49E-6BD2-4BD1-BC8C-7F61D06B7511}"
+EndProject
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "SocketIM.Client", "SocketIM.Client\SocketIM.Client.vbproj", "{1DB0A2B1-7DAA-42F1-8050-E7408ECD5908}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0F92B49E-6BD2-4BD1-BC8C-7F61D06B7511}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0F92B49E-6BD2-4BD1-BC8C-7F61D06B7511}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0F92B49E-6BD2-4BD1-BC8C-7F61D06B7511}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0F92B49E-6BD2-4BD1-BC8C-7F61D06B7511}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1DB0A2B1-7DAA-42F1-8050-E7408ECD5908}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1DB0A2B1-7DAA-42F1-8050-E7408ECD5908}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1DB0A2B1-7DAA-42F1-8050-E7408ECD5908}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1DB0A2B1-7DAA-42F1-8050-E7408ECD5908}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {22584BA7-6FE0-45A2-B56C-997B7ADBAB07}
+	EndGlobalSection
+EndGlobal

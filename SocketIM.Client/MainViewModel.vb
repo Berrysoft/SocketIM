@@ -30,8 +30,9 @@ Public Class MainViewModel
         Else
             If model.Friends.Count > 0 Then
                 model.FriendsSelectIndex = 0
+            Else
+                model.ChatText = Nothing
             End If
-            model.ChatText = Nothing
         End If
     End Sub
 

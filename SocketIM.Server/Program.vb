@@ -1,6 +1,7 @@
 ﻿Module Program
     Friend WithEvents Server As New SocketsServer(3342, 20)
     Sub Main()
+        Console.WriteLine("按任意键结束服务端。")
         Server.Watch()
         Console.Read()
         Server.Close()
@@ -15,7 +16,7 @@
     Private Sub Server_ReceivedAccount(sender As Object, e As (EndPoint As IPEndPoint, Account As Integer)) Handles Server.ReceivedAccount
         Console.WriteLine("客户端{0}的账号为{1}。", e.EndPoint, e.Account)
     End Sub
-    Private Sub Server_CutOff(sender As Object, e As IPEndPoint) Handles Server.CutOff
-        Console.WriteLine("与客户端{0}的连接已断开。", e)
+    Private Sub Server_CutOff(sender As Object, e As (EndPoint As IPEndPoint, Account As Integer)) Handles Server.CutOff
+        Console.WriteLine("与客户端{0}|{1}的连接已断开。", e.EndPoint, e.Account)
     End Sub
 End Module

@@ -10,15 +10,27 @@ Public Class ConnectWindow
         Dim model As MainViewModel = Me.DataContext
         Dim address As IPAddress = model.ServerAddress
         Dim account As Integer = model.Account
+        If account = 0 Then
+            ChangeInf("用户名非法")
+            Exit Sub
+        End If
         Dim result As Boolean = Await Task.Run(
             Function()
                 Try
                     ChangeInf("正在连接")
                     Client = New SocketClient(address, 3342)
                     ChangeInf("正在认证")
-                    Client.SendAccount(account)
-                    ChangeInf("连接成功")
-                    Return True
+                    Client.Socket.Send(BitConverter.GetBytes(account))
+                    Dim buffer(0) As Byte
+                    Client.Socket.Receive(buffer)
+                    Dim isValid As Boolean = BitConverter.ToBoolean(buffer, 0)
+                    If isValid Then
+                        ChangeInf("连接成功")
+                        Return True
+                    Else
+                        ChangeInf("用户名被占用")
+                        Return False
+                    End If
                 Catch ex As Exception
                     ChangeInf("连接失败，请重试")
                     Return False
@@ -35,7 +47,6 @@ Public Class ConnectWindow
                 InfLabel.Content = inf
             End Sub)
     End Sub
-
     Private Sub Account_PreviewTextInput(sender As Object, e As TextCompositionEventArgs)
         e.Handled = Regex.IsMatch(e.Text, "[^0-9.-]+")
     End Sub

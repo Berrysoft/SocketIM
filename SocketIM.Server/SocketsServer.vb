@@ -3,13 +3,12 @@
 Public Class SocketsServer
     Private socketWatch As Socket
     Private socketWatch6 As Socket
-    Private clientConnectionItems As New Dictionary(Of IPEndPoint, Socket)()
-    Private accounts As New Dictionary(Of Integer, IPEndPoint)()
+    Private accounts As New Dictionary(Of Integer, (EndPoint As IPEndPoint, Socket As Socket))()
     Private ipes As New Dictionary(Of IPEndPoint, Integer)()
     Public Event Connected As EventHandler(Of IPEndPoint)
     Public Event ReceivedAccount As EventHandler(Of (EndPoint As IPEndPoint, Account As Integer))
     Public Event ReceivedMessage As EventHandler(Of (Time As Date, Sender As Integer, Receiver As Integer, Message As String))
-    Public Event CutOff As EventHandler(Of IPEndPoint)
+    Public Event CutOff As EventHandler(Of (EndPoint As IPEndPoint, Account As Integer))
     Public Sub New(port As Integer, backlog As Integer)
         Dim ipe As New IPEndPoint(IPAddress.Any, port)
         Dim ipe6 As New IPEndPoint(IPAddress.IPv6Any, port)
@@ -44,17 +43,16 @@ Public Class SocketsServer
                            RaiseEvent Connected(Me, netPoint)
                            Dim account As Integer = BitConverter.ToInt32(buffer, 0)
                            If accounts.ContainsKey(account) OrElse account <= 0 Then
-                               Send(Date.Now, -1, connection, New Byte() {0, 0, 0, 0})
+                               connection.Send(BitConverter.GetBytes(False))
                                connection.Shutdown(SocketShutdown.Both)
+                               connection.Close()
                                Continue Do
                            Else
-                               accounts.Add(account, netPoint)
+                               connection.Send(BitConverter.GetBytes(True))
+                               accounts.Add(account, (netPoint, connection))
                                ipes.Add(netPoint, account)
-                               clientConnectionItems.Add(netPoint, connection)
                                RaiseEvent ReceivedAccount(Me, (netPoint, account))
-                               For Each p In clientConnectionItems
-                                   Send(Date.Now, 0, p.Value, Enumerable.Aggregate(Of IEnumerable(Of Byte))(accounts.Select(Function(pair) BitConverter.GetBytes(pair.Key)), Function(arr1, arr2) Enumerable.Concat(arr1, arr2)).ToArray())
-                               Next
+                               UpdateRemoteAccounts()
                            End If
                            Dim thread As New Thread(AddressOf Receive)
                            thread.IsBackground = True
@@ -85,26 +83,28 @@ Public Class SocketsServer
     End Sub
     Private Sub RemoveRemoteEndPoint(ss As Socket)
         Dim rep As IPEndPoint = ss.RemoteEndPoint
-        RaiseEvent CutOff(Me, rep)
-        clientConnectionItems.Remove(rep)
         Dim account As Integer = ipes(rep)
+        RaiseEvent CutOff(Me, (rep, account))
         ipes.Remove(rep)
         accounts.Remove(account)
-        For Each p In clientConnectionItems
-            Send(Date.Now, 0, p.Value, Enumerable.Aggregate(Of IEnumerable(Of Byte))(accounts.Select(Function(pair) BitConverter.GetBytes(pair.Key)), Function(arr1, arr2) Enumerable.Concat(arr1, arr2)).ToArray())
-        Next
+        UpdateRemoteAccounts()
         ss.Close()
+    End Sub
+    Private Sub UpdateRemoteAccounts()
+        For Each p In accounts
+            Send(Date.Now, 0, p.Value.Socket, Enumerable.Aggregate(Of IEnumerable(Of Byte))(accounts.Select(Function(pair) BitConverter.GetBytes(pair.Key)), Function(arr1, arr2) Enumerable.Concat(arr1, arr2)).ToArray())
+        Next
     End Sub
     Private Sub Send(time As Date, sender As Integer, receiver As Socket, message() As Byte)
         receiver.Send(Enumerable.Concat(BitConverter.GetBytes(time.ToBinary()), Enumerable.Concat(BitConverter.GetBytes(sender), message)).ToArray())
     End Sub
     Public Sub Send(time As Date, sender As Integer, receiver As Integer, message As String)
-        Send(time, sender, clientConnectionItems(accounts(receiver)), Encoding.Unicode.GetBytes(message))
+        Send(time, sender, accounts(receiver).Socket, Encoding.Unicode.GetBytes(message))
     End Sub
     Public Sub Close()
-        For Each pair In clientConnectionItems
-            pair.Value.Shutdown(SocketShutdown.Both)
-            pair.Value.Close()
+        For Each pair In accounts
+            pair.Value.Socket.Shutdown(SocketShutdown.Both)
+            pair.Value.Socket.Close()
         Next
         socketWatch.Close()
         socketWatch6.Close()

@@ -52,18 +52,6 @@ Class MainWindow
                         End If
                     Next
                 End Sub)
-        ElseIf e.Sender = -1 Then
-            receiving = False
-            Me.Dispatcher.BeginInvoke(
-                Sub()
-                    If Model.Account > 0 Then
-                        MessageBox.Show("用户名冲突，请重新登录。", "用户名冲突", MessageBoxButton.OK, MessageBoxImage.Error)
-                        InitClient()
-                    Else
-                        MessageBox.Show("用户名非法，请重新登录。", "用户名非法", MessageBoxButton.OK, MessageBoxImage.Error)
-                        InitClient()
-                    End If
-                End Sub)
         Else
             Me.Dispatcher.BeginInvoke(
                 Sub()

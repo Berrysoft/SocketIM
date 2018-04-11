@@ -10,9 +10,11 @@ Public Class SocketClient
         clientSocket = New Socket(ipe.AddressFamily, SocketType.Stream, ProtocolType.Tcp)
         clientSocket.Connect(ipe)
     End Sub
-    Public Sub SendAccount(account As Integer)
-        clientSocket.Send(BitConverter.GetBytes(account))
-    End Sub
+    Public ReadOnly Property Socket As Socket
+        Get
+            Return clientSocket
+        End Get
+    End Property
     Public Sub StartReceiving()
         Dim thread As New Thread(AddressOf Receive)
         thread.Start()

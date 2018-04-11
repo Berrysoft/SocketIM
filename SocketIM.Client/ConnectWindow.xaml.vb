@@ -1,4 +1,6 @@
-﻿Public Class ConnectWindow
+﻿Imports System.Text.RegularExpressions
+
+Public Class ConnectWindow
     Public Sub New(model As MainViewModel)
         InitializeComponent()
         Me.DataContext = model
@@ -32,5 +34,9 @@
             Sub()
                 InfLabel.Content = inf
             End Sub)
+    End Sub
+
+    Private Sub Account_PreviewTextInput(sender As Object, e As TextCompositionEventArgs)
+        e.Handled = Regex.IsMatch(e.Text, "[^0-9.-]+")
     End Sub
 End Class

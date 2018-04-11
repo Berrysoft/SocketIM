@@ -20,18 +20,18 @@
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="1*"/>
-                <ColumnDefinition Width="2.5*"/>
+                <ColumnDefinition Width="2*"/>
             </Grid.ColumnDefinitions>
             <Label Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="2">IPv6地址：</Label>
-            <TextBox Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Center" Width="225" Margin="5" input:InputMethod.IsInputMethodEnabled="False" Text="{Binding ServerAddress,Converter={StaticResource IPAddressToString}}"/>
+            <TextBox Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Center" Width="200" Margin="5" input:InputMethod.IsInputMethodEnabled="False" Text="{Binding ServerAddress,Converter={StaticResource IPAddressToString}}"/>
         </Grid>
         <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="1*"/>
-                <ColumnDefinition Width="2.5*"/>
+                <ColumnDefinition Width="2*"/>
             </Grid.ColumnDefinitions>
             <Label Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="2">账号：</Label>
-            <TextBox Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Center" Width="225" Margin="5" input:InputMethod.IsInputMethodEnabled="False" Text="{Binding Account}"/>
+            <TextBox Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Center" Width="200" Margin="5" input:InputMethod.IsInputMethodEnabled="False" Text="{Binding Account}"/>
         </Grid>
         <Grid Grid.Row="3">
             <Grid.ColumnDefinitions>

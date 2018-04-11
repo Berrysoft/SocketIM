@@ -1,5 +1,5 @@
 ﻿Module Program
-    Friend WithEvents Server As New SocketsServer(IPAddress.IPv6Any, 3342, 20)
+    Friend WithEvents Server As New SocketsServer(3342, 20)
     Sub Main()
         Server.Watch()
         Console.Read()

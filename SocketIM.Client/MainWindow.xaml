@@ -28,19 +28,7 @@
                 <RowDefinition Height="100"/>
                 <RowDefinition Height="40"/>
             </Grid.RowDefinitions>
-            <!--<TextBox Grid.Row="0" IsReadOnly="True" Margin="5,0,0,5" VerticalScrollBarVisibility="Auto" Text="{Binding ChatText,Mode=OneWay,Converter={StaticResource MessageToString}}"/>-->
-            <ListView x:Name="ChatList" Grid.Row="0" Margin="5,0,0,5" ItemsSource="{Binding ChatText}">
-                <!--<ListView.View>
-                    <GridView>
-                        <GridViewColumn>
-                            <GridViewColumn.CellTemplate>
-                                <DataTemplate>
-                                    <TextBox IsReadOnly="True" Text="{Binding Mode=OneWay,Converter={StaticResource MessageToString}}"/>
-                                </DataTemplate>
-                            </GridViewColumn.CellTemplate>
-                        </GridViewColumn>
-                    </GridView>
-                </ListView.View>-->
+            <ListView x:Name="ChatList" Grid.Row="0" Margin="5,0,0,5" ScrollViewer.CanContentScroll="False" ItemsSource="{Binding ChatText}">
                 <ListView.ItemTemplate>
                     <DataTemplate>
                         <TextBox IsReadOnly="True" BorderThickness="0" BorderBrush="Transparent" Background="Transparent" TextWrapping="WrapWithOverflow" Text="{Binding Mode=OneWay,Converter={StaticResource MessageToString}}"/>

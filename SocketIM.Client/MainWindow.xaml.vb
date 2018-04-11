@@ -30,9 +30,8 @@ Class MainWindow
             Model.ChatTexts(sender).Add((Date.Now, Model.Account, Model.SendText))
             If Model.ChatText Is Nothing Then
                 Model.ChatText = Model.ChatTexts(sender)
-                'Else
-                '    Model.ChatText.Add((Date.Now, Model.Account, Model.SendText))
             End If
+            ChatList.ScrollIntoView(ChatList.Items(ChatList.Items.Count - 1))
             Model.SendText = String.Empty
         End If
     End Sub
@@ -72,9 +71,8 @@ Class MainWindow
                     If e.Sender = Model.Friends(Model.FriendsSelectIndex) Then
                         If Model.ChatText Is Nothing Then
                             Model.ChatText = Model.ChatTexts(e.Sender)
-                            'Else
-                            '    Model.ChatText.Add(e)
                         End If
+                        ChatList.ScrollIntoView(ChatList.Items(ChatList.Items.Count - 1))
                     End If
                 End Sub)
         End If

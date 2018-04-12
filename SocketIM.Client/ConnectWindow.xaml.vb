@@ -10,7 +10,7 @@ Public Class ConnectWindow
         Dim model As MainViewModel = Me.DataContext
         Dim address As IPAddress = model.ServerAddress
         Dim account As Integer = model.Account
-        If account = 0 Then
+        If account <= 0 Then
             ChangeInf("用户名非法")
             Exit Sub
         End If

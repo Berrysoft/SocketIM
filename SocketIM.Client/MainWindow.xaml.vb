@@ -35,35 +35,40 @@ Class MainWindow
             Model.SendText = String.Empty
         End If
     End Sub
-    Private Sub Client_ReceivedMessage(sender As Object, e As (Time As Date, Sender As Integer, Message As String))
-        If e.Sender = 0 Then
-            Dim friends() As Byte = Encoding.Unicode.GetBytes(e.Message)
-            Me.Dispatcher.BeginInvoke(
-                Sub()
-                    Model.Friends.Clear()
-                    Model.FriendsSelectIndex = 0
-                    For i As Integer = 0 To friends.Length - 1 Step 4
-                        Dim f As Integer = BitConverter.ToInt32(friends, i)
-                        If f <> Model.Account Then
+    Private Sub Client_ReceivedCommand(sender As Object, e As (Time As Date, Command As Byte())) Handles Client.ReceivedCommand
+        Me.Dispatcher.BeginInvoke(
+            Sub()
+                Dim newFriends As New List(Of Integer)()
+                For i As Integer = 0 To e.Command.Length - 1 Step 4
+                    Dim f As Integer = BitConverter.ToInt32(e.Command, i)
+                    If f <> Model.Account Then
+                        newFriends.Add(f)
+                        If Not Model.Friends.Contains(f) Then
                             Model.Friends.Add(f)
-                            If Not Model.ChatTexts.ContainsKey(f) Then
-                                Model.ChatTexts.Add(f, New ObservableCollection(Of (Time As Date, Sender As Integer, Message As String))())
-                            End If
                         End If
-                    Next
-                End Sub)
-        Else
-            Me.Dispatcher.BeginInvoke(
-                Sub()
-                    Model.ChatTexts(e.Sender).Add(e)
-                    If e.Sender = Model.Friends(Model.FriendsSelectIndex) Then
-                        If Model.ChatText Is Nothing Then
-                            Model.ChatText = Model.ChatTexts(e.Sender)
-                        End If
-                        ChatList.ScrollIntoView(ChatList.Items(ChatList.Items.Count - 1))
                     End If
-                End Sub)
-        End If
+                Next
+                Dim j As Integer = 0
+                Do While j < Model.Friends.Count
+                    If Not newFriends.Contains(Model.Friends(j)) Then
+                        Model.Friends.RemoveAt(j)
+                        Continue Do
+                    End If
+                    j += 1
+                Loop
+            End Sub)
+    End Sub
+    Private Sub Client_ReceivedMessage(sender As Object, e As (Time As Date, Sender As Integer, Message As String))
+        Me.Dispatcher.BeginInvoke(
+            Sub()
+                Model.ChatTexts(e.Sender).Add(e)
+                If e.Sender = Model.Friends(Model.FriendsSelectIndex) Then
+                    If Model.ChatText Is Nothing Then
+                        Model.ChatText = Model.ChatTexts(e.Sender)
+                    End If
+                    ChatList.ScrollIntoView(ChatList.Items(ChatList.Items.Count - 1))
+                End If
+            End Sub)
     End Sub
     Private Sub Client_CatchedException(sender As Object, e As Exception)
         If receiving Then

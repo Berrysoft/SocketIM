@@ -92,11 +92,21 @@ Public Class SocketsServer
     End Sub
     Private Sub UpdateRemoteAccounts()
         For Each p In accounts
-            Send(Date.Now, 0, p.Value.Socket, Enumerable.Aggregate(Of IEnumerable(Of Byte))(accounts.Select(Function(pair) BitConverter.GetBytes(pair.Key)), Function(arr1, arr2) Enumerable.Concat(arr1, arr2)).ToArray())
+            Send(Date.Now, 0, p.Value.Socket, accounts.Select(Function(pair) BitConverter.GetBytes(pair.Key)).Select(Function(arr) New ArraySegment(Of Byte)(arr)))
         Next
     End Sub
     Private Sub Send(time As Date, sender As Integer, receiver As Socket, message() As Byte)
-        receiver.Send(Enumerable.Concat(BitConverter.GetBytes(time.ToBinary()), Enumerable.Concat(BitConverter.GetBytes(sender), message)).ToArray())
+        receiver.Send(New List(Of ArraySegment(Of Byte)) From
+                      {New ArraySegment(Of Byte)(BitConverter.GetBytes(time.ToBinary())),
+                      New ArraySegment(Of Byte)(BitConverter.GetBytes(sender)),
+                      New ArraySegment(Of Byte)(message)})
+    End Sub
+    Private Sub Send(time As Date, sender As Integer, receiver As Socket, message As IEnumerable(Of ArraySegment(Of Byte)))
+        Dim sendMsg As New List(Of ArraySegment(Of Byte)) From
+            {New ArraySegment(Of Byte)(BitConverter.GetBytes(time.ToBinary())),
+            New ArraySegment(Of Byte)(BitConverter.GetBytes(sender))}
+        sendMsg.AddRange(message)
+        receiver.Send(sendMsg)
     End Sub
     Public Sub Send(time As Date, sender As Integer, receiver As Integer, message As String)
         Send(time, sender, accounts(receiver).Socket, Encoding.Unicode.GetBytes(message))

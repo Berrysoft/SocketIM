@@ -49,6 +49,9 @@
     <OptionInfer>On</OptionInfer>
   </PropertyGroup>
   <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+  <PropertyGroup>
     <ApplicationManifest>My Project\app.manifest</ApplicationManifest>
   </PropertyGroup>
   <ItemGroup>
@@ -74,7 +77,6 @@
       <DependentUpon>ConnectWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="MainViewModel.vb" />
-    <Compile Include="ObservableDictionary.vb" />
     <Compile Include="SocketClient.vb" />
     <Page Include="ConnectWindow.xaml">
       <SubType>Designer</SubType>

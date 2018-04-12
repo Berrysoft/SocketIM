@@ -3,6 +3,7 @@
 Public Class SocketClient
     Private clientSocket As Socket
     Public Event ReceivedMessage As EventHandler(Of (Time As Date, Sender As Integer, Message As String))
+    Public Event ReceivedCommand As EventHandler(Of (Time As Date, Command As Byte()))
     Public Event CutOff As EventHandler
     Public Event CatchedException As EventHandler(Of Exception)
     Public Sub New(ip As IPAddress, port As Integer)
@@ -32,8 +33,12 @@ Public Class SocketClient
             If length >= 12 Then
                 Dim time As Date = Date.FromBinary(BitConverter.ToInt64(recMsg, 0))
                 Dim sender As Integer = BitConverter.ToInt32(recMsg, 8)
-                Dim message As String = Encoding.Unicode.GetString(recMsg, 12, length - 12)
-                RaiseEvent ReceivedMessage(Me, (time, sender, message))
+                If sender > 0 Then
+                    Dim message As String = Encoding.Unicode.GetString(recMsg, 12, length - 12)
+                    RaiseEvent ReceivedMessage(Me, (time, sender, message))
+                ElseIf sender = 0 Then
+                    RaiseEvent ReceivedCommand(Me, (time, New ArraySegment(Of Byte)(recMsg, 12, length - 12).ToArray()))
+                End If
             Else
                 Close()
                 RaiseEvent CutOff(Me, EventArgs.Empty)
@@ -42,7 +47,9 @@ Public Class SocketClient
         Loop
     End Sub
     Public Sub Send(receiver As Integer, message As String)
-        clientSocket.Send(Enumerable.Concat(BitConverter.GetBytes(receiver), Encoding.Unicode.GetBytes(message)).ToArray())
+        clientSocket.Send(New List(Of ArraySegment(Of Byte)) From
+                          {New ArraySegment(Of Byte)(BitConverter.GetBytes(receiver)),
+                          New ArraySegment(Of Byte)(Encoding.Unicode.GetBytes(message))})
     End Sub
     Public Sub Close()
         Try

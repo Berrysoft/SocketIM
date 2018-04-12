@@ -31,11 +31,11 @@
             <ListView x:Name="ChatList" Grid.Row="0" Margin="5,0,0,5" ScrollViewer.CanContentScroll="False" ItemsSource="{Binding ChatText}">
                 <ListView.ItemTemplate>
                     <DataTemplate>
-                        <TextBox IsReadOnly="True" BorderThickness="0" BorderBrush="Transparent" Background="Transparent" TextWrapping="WrapWithOverflow" Text="{Binding Mode=OneWay,Converter={StaticResource MessageToString}}"/>
+                        <TextBox IsReadOnly="True" BorderThickness="0" BorderBrush="Transparent" Background="Transparent" TextWrapping="Wrap" Text="{Binding Mode=OneWay,Converter={StaticResource MessageToString}}"/>
                     </DataTemplate>
                 </ListView.ItemTemplate>
             </ListView>
-            <TextBox Grid.Row="1" Margin="5,0,0,5" VerticalScrollBarVisibility="Auto" TextWrapping="Wrap" AcceptsReturn="True" Text="{Binding SendText,Mode=TwoWay}"/>
+            <TextBox Grid.Row="1" Margin="5,0,0,5" VerticalScrollBarVisibility="Auto" TextWrapping="Wrap" AcceptsReturn="True" MaxLength="500000" Text="{Binding SendText,Mode=TwoWay}"/>
             <Button Grid.Row="2" Margin="5,0,0,0" Command="{StaticResource Send}">发送</Button>
         </Grid>
     </Grid>

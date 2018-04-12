@@ -4,15 +4,22 @@ Imports System.Globalization
 
 Public Class MainViewModel
     Inherits DependencyObject
-    Public Shared ReadOnly FriendsProperty As DependencyProperty = DependencyProperty.Register(NameOf(Friends), GetType(ObservableCollection(Of Integer)), GetType(MainViewModel), New PropertyMetadata(New ObservableCollection(Of Integer)()))
-    Public Property Friends As ObservableCollection(Of Integer)
+    Private WithEvents FriendsCollection As New ObservableCollection(Of Integer)
+    Public ReadOnly Property Friends As ObservableCollection(Of Integer)
         Get
-            Return GetValue(FriendsProperty)
+            Return FriendsCollection
         End Get
-        Set(value As ObservableCollection(Of Integer))
-            SetValue(FriendsProperty, value)
-        End Set
     End Property
+    Private Sub FriendsCollection_CollectionChanged(sender As Object, e As NotifyCollectionChangedEventArgs) Handles FriendsCollection.CollectionChanged
+        Select Case e.Action
+            Case NotifyCollectionChangedAction.Add
+                For Each acc As Integer In e.NewItems
+                    If Not texts.ContainsKey(acc) Then
+                        texts.Add(acc, New ObservableCollection(Of (Time As Date, Sender As Integer, Message As String))())
+                    End If
+                Next
+        End Select
+    End Sub
 
     Public Shared ReadOnly FriendsSelectIndexProperty As DependencyProperty = DependencyProperty.Register(NameOf(FriendsSelectIndex), GetType(Integer), GetType(MainViewModel), New PropertyMetadata(0, AddressOf FriendsSelectIndexChangedCallback))
     Public Property FriendsSelectIndex As Integer
@@ -66,15 +73,12 @@ Public Class MainViewModel
         End Set
     End Property
 
-    Private WithEvents Texts As New ObservableDictionary(Of Integer, ObservableCollection(Of (Time As Date, Sender As Integer, Message As String)))
-    Public ReadOnly Property ChatTexts As ObservableDictionary(Of Integer, ObservableCollection(Of (Time As Date, Sender As Integer, Message As String)))
+    Private texts As New Dictionary(Of Integer, ObservableCollection(Of (Time As Date, Sender As Integer, Message As String)))
+    Public ReadOnly Property ChatTexts As Dictionary(Of Integer, ObservableCollection(Of (Time As Date, Sender As Integer, Message As String)))
         Get
-            Return Texts
+            Return texts
         End Get
     End Property
-    Private Sub Texts_CollectionChanged(sender As Object, e As NotifyCollectionChangedEventArgs) Handles Texts.CollectionChanged
-        FriendsSelectIndex = 0
-    End Sub
 
     Public Shared ReadOnly SendTextProperty As DependencyProperty = DependencyProperty.Register(NameOf(SendText), GetType(String), GetType(MainViewModel))
     Public Property SendText As String
@@ -98,12 +102,6 @@ End Class
 Class MessageToString
     Implements IValueConverter
     Public Function Convert(value As Object, targetType As Type, parameter As Object, culture As CultureInfo) As Object Implements IValueConverter.Convert
-        '        Dim message As IEnumerable(Of (Time As Date, Sender As Integer, Message As String)) = value
-        '        If value Is Nothing Then
-        '            Return String.Empty
-        '        End If
-        '        Return message.Select(Function(m As (Time As Date, Sender As Integer, Message As String)) $"{m.Time} | {m.Sender}
-        '{m.Message}")
         Dim m As (Time As Date, Sender As Integer, Message As String) = value
         Return $"{m.Time} | {m.Sender}
 {m.Message}"

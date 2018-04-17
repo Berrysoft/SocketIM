@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:SocketIM.Client"
         xmlns:input="clr-namespace:System.Windows.Input;assembly=PresentationCore"
         mc:Ignorable="d"
-        Title="登录" Height="200" Width="400" ResizeMode="NoResize" WindowStartupLocation="CenterScreen">
+        Title="登录" Height="200" Width="400" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" ShowInTaskbar="False">
     <Window.Resources>
         <local:IPAddressToString x:Key="IPAddressToString"/>
     </Window.Resources>

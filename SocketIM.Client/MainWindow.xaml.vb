@@ -1,8 +1,5 @@
-﻿Imports System.Collections.ObjectModel
-
-Class MainWindow
+﻿Class MainWindow
     Friend WithEvents Client As SocketClient
-    Friend Login As ConnectWindow
     Private receiving As Boolean
     Public Sub New()
         InitializeComponent()
@@ -10,7 +7,8 @@ Class MainWindow
     End Sub
     Private Sub InitClient()
         Client?.Close()
-        Login = New ConnectWindow(Model)
+        Dim Login As New ConnectWindow(Model)
+        If Me.IsLoaded Then Login.Owner = Me
         Dim result As Boolean? = Login.ShowDialog()
         If result.HasValue AndAlso result.Value Then
             Client = Login.Client

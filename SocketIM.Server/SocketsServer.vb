@@ -1,9 +1,9 @@
 ﻿Imports System.Threading
 
 Public Class SocketsServer
-    Private socketWatch As Socket
-    Private socketWatch6 As Socket
-    Private accounts As New Dictionary(Of Integer, (EndPoint As IPEndPoint, Socket As Socket))()
+    Private socketWatch As TcpListener
+    Private socketWatch6 As TcpListener
+    Private accounts As New Dictionary(Of Integer, (EndPoint As IPEndPoint, Socket As TcpClient))()
     Private ipes As New Dictionary(Of IPEndPoint, Integer)()
     Public Event Connected As EventHandler(Of IPEndPoint)
     Public Event ReceivedAccount As EventHandler(Of (EndPoint As IPEndPoint, Account As Integer))
@@ -12,111 +12,92 @@ Public Class SocketsServer
     Public Sub New(port As Integer, backlog As Integer)
         Dim ipe As New IPEndPoint(IPAddress.Any, port)
         Dim ipe6 As New IPEndPoint(IPAddress.IPv6Any, port)
-        socketWatch = New Socket(ipe.AddressFamily, SocketType.Stream, ProtocolType.Tcp)
-        socketWatch.Bind(ipe)
-        socketWatch.Listen(backlog)
-        socketWatch6 = New Socket(ipe6.AddressFamily, SocketType.Stream, ProtocolType.Tcp)
-        socketWatch6.Bind(ipe6)
-        socketWatch6.Listen(backlog)
+        socketWatch = New TcpListener(ipe)
+        socketWatch.Start()
+        socketWatch6 = New TcpListener(ipe6)
+        socketWatch6.Start()
     End Sub
-    Public Sub Watch()
-        Dim threadWatch As New Thread(GetWatchConnectingDelegate(socketWatch))
-        threadWatch.IsBackground = True
-        threadWatch.Start()
-        Dim threadWatch6 As New Thread(GetWatchConnectingDelegate(socketWatch6))
-        threadWatch6.IsBackground = True
-        threadWatch6.Start()
+    Public Async Sub Watch()
+        Await Task.WhenAll(GetWatchConnectingDelegate(socketWatch), GetWatchConnectingDelegate(socketWatch6))
     End Sub
-    Private Function GetWatchConnectingDelegate(sw As Socket) As ThreadStart
-        Return Sub()
-                   Dim connection As Socket
-                   Do
-                       Try
-                           connection = sw.Accept()
-                       Catch ex As Exception
-                           Console.Error.WriteLine(ex.Message)
-                           Exit Do
-                       End Try
-                       Dim netPoint As IPEndPoint = connection.RemoteEndPoint
-                       Dim buffer(3) As Byte
-                       If connection.Receive(buffer) = 4 Then
-                           RaiseEvent Connected(Me, netPoint)
-                           Dim account As Integer = BitConverter.ToInt32(buffer, 0)
-                           If accounts.ContainsKey(account) OrElse account <= 0 Then
-                               connection.Send(BitConverter.GetBytes(False))
-                               connection.Shutdown(SocketShutdown.Both)
-                               connection.Close()
-                               Continue Do
-                           Else
-                               connection.Send(BitConverter.GetBytes(True))
-                               accounts.Add(account, (netPoint, connection))
-                               ipes.Add(netPoint, account)
-                               RaiseEvent ReceivedAccount(Me, (netPoint, account))
-                               UpdateRemoteAccounts()
-                           End If
-                           Dim thread As New Thread(AddressOf Receive)
-                           thread.IsBackground = True
-                           thread.Start(connection)
-                       End If
-                   Loop
-               End Sub
+    Private Async Function GetWatchConnectingDelegate(sw As TcpListener) As Task
+        Dim connection As TcpClient
+        Do
+            Try
+                connection = Await sw.AcceptTcpClientAsync()
+            Catch ex As Exception
+                Console.Error.WriteLine(ex.Message)
+                Exit Do
+            End Try
+            Dim netPoint As IPEndPoint = connection.Client.RemoteEndPoint
+            Dim stream = connection.GetStream()
+            Dim buffer(3) As Byte
+            If Await stream.ReadAsync(buffer, 0, 4) = 4 Then
+                RaiseEvent Connected(Me, netPoint)
+                Dim account As Integer = BitConverter.ToInt32(buffer, 0)
+                If accounts.ContainsKey(account) OrElse account <= 0 Then
+                    Dim buf = BitConverter.GetBytes(False)
+                    Await stream.WriteAsync(buf, 0, buf.Length)
+                    stream.Close()
+                    connection.Close()
+                    Continue Do
+                Else
+                    Dim buf = BitConverter.GetBytes(True)
+                    Await stream.WriteAsync(buf, 0, buf.Length)
+                    accounts.Add(account, (netPoint, connection))
+                    ipes.Add(netPoint, account)
+                    RaiseEvent ReceivedAccount(Me, (netPoint, account))
+                    Await UpdateRemoteAccounts()
+                End If
+                Receive(connection)
+            End If
+        Loop
     End Function
-    Private Sub Receive(socketClient As Object)
-        Dim socketServer As Socket = socketClient
+    Private Async Sub Receive(socketClient As TcpClient)
+        Dim socketServer = socketClient.GetStream()
         Do
             Dim recMsg(1048575) As Byte
             Try
-                Dim length As Integer = socketServer.Receive(recMsg)
+                Dim length As Integer = Await socketServer.ReadAsync(recMsg, 0, 1048575)
                 If length >= 4 Then
                     Dim account As Integer = BitConverter.ToInt32(recMsg, 0)
-                    RaiseEvent ReceivedMessage(Me, (Date.Now, ipes(socketServer.RemoteEndPoint), account, Encoding.Unicode.GetString(recMsg, 4, length - 4)))
+                    RaiseEvent ReceivedMessage(Me, (Date.Now, ipes(socketClient.Client.RemoteEndPoint), account, Encoding.Unicode.GetString(recMsg, 4, length - 4)))
                 Else
-                    RemoveRemoteEndPoint(socketServer)
                     Exit Do
                 End If
             Catch ex As Exception
-                RemoveRemoteEndPoint(socketServer)
                 Console.Error.WriteLine(ex.Message)
                 Exit Do
             End Try
         Loop
+        Await RemoveRemoteEndPoint(socketClient)
     End Sub
-    Private Sub RemoveRemoteEndPoint(ss As Socket)
-        Dim rep As IPEndPoint = ss.RemoteEndPoint
+    Private Async Function RemoveRemoteEndPoint(ss As TcpClient) As Task
+        Dim rep As IPEndPoint = ss.Client.RemoteEndPoint
         Dim account As Integer = ipes(rep)
         RaiseEvent CutOff(Me, (rep, account))
         ipes.Remove(rep)
         accounts.Remove(account)
-        UpdateRemoteAccounts()
+        Await UpdateRemoteAccounts()
         ss.Close()
-    End Sub
-    Private Sub UpdateRemoteAccounts()
+    End Function
+    Private Async Function UpdateRemoteAccounts() As Task
         For Each p In accounts
-            Send(Date.Now, 0, p.Value.Socket, accounts.Select(Function(pair) BitConverter.GetBytes(pair.Key)).Select(Function(arr) New ArraySegment(Of Byte)(arr)))
+            Await Send(Date.Now, 0, p.Value.Socket.GetStream(), accounts.SelectMany(Function(pair) BitConverter.GetBytes(pair.Key)).ToArray())
         Next
-    End Sub
-    Private Sub Send(time As Date, sender As Integer, receiver As Socket, message() As Byte)
-        receiver.Send(New List(Of ArraySegment(Of Byte)) From
-                      {New ArraySegment(Of Byte)(BitConverter.GetBytes(time.ToBinary())),
-                      New ArraySegment(Of Byte)(BitConverter.GetBytes(sender)),
-                      New ArraySegment(Of Byte)(message)})
-    End Sub
-    Private Sub Send(time As Date, sender As Integer, receiver As Socket, message As IEnumerable(Of ArraySegment(Of Byte)))
-        Dim sendMsg As New List(Of ArraySegment(Of Byte)) From
-            {New ArraySegment(Of Byte)(BitConverter.GetBytes(time.ToBinary())),
-            New ArraySegment(Of Byte)(BitConverter.GetBytes(sender))}
-        sendMsg.AddRange(message)
-        receiver.Send(sendMsg)
-    End Sub
-    Public Sub Send(time As Date, sender As Integer, receiver As Integer, message As String)
-        Send(time, sender, accounts(receiver).Socket, Encoding.Unicode.GetBytes(message))
-    End Sub
+    End Function
+    Private Async Function Send(time As Date, sender As Integer, receiver As NetworkStream, message() As Byte) As Task
+        Dim buffer = BitConverter.GetBytes(time.ToBinary()).Concat(BitConverter.GetBytes(sender)).Concat(message).ToArray()
+        Await receiver.WriteAsync(buffer, 0, buffer.Length)
+    End Function
+    Public Function Send(time As Date, sender As Integer, receiver As Integer, message As String) As Task
+        Return Send(time, sender, accounts(receiver).Socket.GetStream(), Encoding.Unicode.GetBytes(message))
+    End Function
     Public Sub Close()
         For Each pair In accounts
-            pair.Value.Socket.Shutdown(SocketShutdown.Both)
             pair.Value.Socket.Close()
         Next
-        socketWatch.Close()
-        socketWatch6.Close()
+        socketWatch.Stop()
+        socketWatch6.Stop()
     End Sub
 End Class

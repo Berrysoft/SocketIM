@@ -15,7 +15,7 @@
             AddHandler Client.ReceivedMessage, AddressOf Client_ReceivedMessage
             AddHandler Client.CatchedException, AddressOf Client_CatchedException
             AddHandler Client.CutOff, AddressOf Client_CutOff
-            Client.StartReceiving()
+            Client.Receive()
             receiving = True
         Else
             Me.Close()

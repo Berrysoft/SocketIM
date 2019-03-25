@@ -1,6 +1,4 @@
-﻿Imports System.Threading
-
-Public Class SocketsServer
+﻿Public Class SocketsServer
     Private socketWatch As TcpListener
     Private socketWatch6 As TcpListener
     Private accounts As New Dictionary(Of Integer, (EndPoint As IPEndPoint, Socket As TcpClient))()

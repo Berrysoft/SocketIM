@@ -1,31 +1,27 @@
-﻿Imports System.Threading
-
-Public Class SocketClient
-    Private clientSocket As Socket
+﻿Public Class SocketClient
+    Private clientSocket As TcpClient
+    Private stream As NetworkStream
     Public Event ReceivedMessage As EventHandler(Of (Time As Date, Sender As Integer, Message As String))
     Public Event ReceivedCommand As EventHandler(Of (Time As Date, Command As Byte()))
     Public Event CutOff As EventHandler
     Public Event CatchedException As EventHandler(Of Exception)
     Public Sub New(ip As IPAddress, port As Integer)
         Dim ipe As New IPEndPoint(ip, port)
-        clientSocket = New Socket(ipe.AddressFamily, SocketType.Stream, ProtocolType.Tcp)
+        clientSocket = New TcpClient(ip.AddressFamily)
         clientSocket.Connect(ipe)
+        stream = clientSocket.GetStream()
     End Sub
-    Public ReadOnly Property Socket As Socket
+    Public ReadOnly Property ClientStream As NetworkStream
         Get
-            Return clientSocket
+            Return stream
         End Get
     End Property
-    Public Sub StartReceiving()
-        Dim thread As New Thread(AddressOf Receive)
-        thread.Start()
-    End Sub
-    Private Sub Receive()
+    Public Async Sub Receive()
         Do
             Dim recMsg(1048575) As Byte
             Dim length As Integer
             Try
-                length = clientSocket.Receive(recMsg)
+                length = Await stream.ReadAsync(recMsg, 0, recMsg.Length)
             Catch ex As Exception
                 RaiseEvent CatchedException(Me, ex)
                 Exit Do
@@ -46,14 +42,12 @@ Public Class SocketClient
             End If
         Loop
     End Sub
-    Public Sub Send(receiver As Integer, message As String)
-        clientSocket.Send(New List(Of ArraySegment(Of Byte)) From
-                          {New ArraySegment(Of Byte)(BitConverter.GetBytes(receiver)),
-                          New ArraySegment(Of Byte)(Encoding.Unicode.GetBytes(message))})
+    Public Async Sub Send(receiver As Integer, message As String)
+        Dim buf = BitConverter.GetBytes(receiver).Concat(Encoding.Unicode.GetBytes(message)).ToArray()
+        Await stream.WriteAsync(buf, 0, buf.Length)
     End Sub
     Public Sub Close()
         Try
-            clientSocket.Shutdown(SocketShutdown.Both)
             clientSocket.Close()
         Catch ex As ObjectDisposedException
         End Try

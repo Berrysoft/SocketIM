@@ -59,7 +59,7 @@
                 Dim length As Integer = Await socketServer.ReadAsync(recMsg, 0, 1048575)
                 If length >= 4 Then
                     Dim account As Integer = BitConverter.ToInt32(recMsg, 0)
-                    RaiseEvent ReceivedMessage(Me, (Date.Now, ipes(socketClient.Client.RemoteEndPoint), account, Encoding.Unicode.GetString(recMsg, 4, length - 4)))
+                    RaiseEvent ReceivedMessage(Me, (Date.Now, ipes(socketClient.Client.RemoteEndPoint), account, Encoding.UTF8.GetString(recMsg, 4, length - 4)))
                 Else
                     Exit Do
                 End If
@@ -89,7 +89,7 @@
         Await receiver.WriteAsync(buffer, 0, buffer.Length)
     End Function
     Public Function Send(time As Date, sender As Integer, receiver As Integer, message As String) As Task
-        Return Send(time, sender, accounts(receiver).Socket.GetStream(), Encoding.Unicode.GetBytes(message))
+        Return Send(time, sender, accounts(receiver).Socket.GetStream(), Encoding.UTF8.GetBytes(message))
     End Function
     Public Sub Close()
         For Each pair In accounts

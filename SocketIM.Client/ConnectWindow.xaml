@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:SocketIM.Client"
         xmlns:input="clr-namespace:System.Windows.Input;assembly=PresentationCore"
         mc:Ignorable="d"
-        Title="登录" Height="200" Width="400" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" ShowInTaskbar="False">
+        Title="Connect" Height="200" Width="400" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" ShowInTaskbar="False">
     <Window.Resources>
         <local:IPAddressToString x:Key="IPAddressToString"/>
     </Window.Resources>
@@ -22,25 +22,18 @@
                 <ColumnDefinition Width="1*"/>
                 <ColumnDefinition Width="2.5*"/>
             </Grid.ColumnDefinitions>
-            <Label Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="2">IP地址：</Label>
-            <TextBox Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Center" Width="225" Margin="5" input:InputMethod.IsInputMethodEnabled="False" Text="{Binding ServerAddress,Converter={StaticResource IPAddressToString}}">
-                <TextBox.ToolTip>
-                    <StackPanel>
-                        <TextBlock>支持IPv4与IPv6</TextBlock>
-                        <TextBlock>有些网络可能不支持IPv6协议</TextBlock>
-                    </StackPanel>
-                </TextBox.ToolTip>
-            </TextBox>
+            <Label Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="2">IP Address:</Label>
+            <TextBox Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Center" Width="225" Margin="5" input:InputMethod.IsInputMethodEnabled="False" Text="{Binding ServerAddress,Converter={StaticResource IPAddressToString}}"/>
         </Grid>
         <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="1*"/>
                 <ColumnDefinition Width="2.5*"/>
             </Grid.ColumnDefinitions>
-            <Label Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="2">账号：</Label>
+            <Label Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="2">Username:</Label>
             <TextBox Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Center" Width="225" Margin="5" input:InputMethod.IsInputMethodEnabled="False" PreviewTextInput="Account_PreviewTextInput" Text="{Binding Account}">
                 <TextBox.ToolTip>
-                    目前只支持数字
+                    Input digits only.
                 </TextBox.ToolTip>
             </TextBox>
         </Grid>
@@ -49,8 +42,8 @@
                 <ColumnDefinition/>
                 <ColumnDefinition/>
             </Grid.ColumnDefinitions>
-            <Label x:Name="InfLabel" Grid.Column="0" HorizontalAlignment="Center" VerticalAlignment="Center">等待连接</Label>
-            <Button Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" Width="80" Margin="5" IsDefault="True" Click="Connect_Click">连接</Button>
+            <Label x:Name="InfLabel" Grid.Column="0" HorizontalAlignment="Center" VerticalAlignment="Center">Ready.</Label>
+            <Button Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" Width="80" Margin="5" IsDefault="True" Click="Connect_Click">Connect</Button>
         </Grid>
     </Grid>
 </Window>

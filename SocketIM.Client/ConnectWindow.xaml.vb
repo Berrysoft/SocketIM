@@ -11,7 +11,7 @@ Public Class ConnectWindow
         Dim address As IPAddress = model.ServerAddress
         Dim account As Integer = model.Account
         If account <= 0 Then
-            ChangeInf("用户名非法")
+            ChangeInf("Invalid username")
             Exit Sub
         End If
         Dim result As Boolean = Await ConnectImpl(address, account)
@@ -22,23 +22,23 @@ Public Class ConnectWindow
     End Sub
     Async Function ConnectImpl(address As IPAddress, account As Integer) As Task(Of Boolean)
         Try
-            ChangeInf("正在连接")
+            ChangeInf("Connecting...")
             Client = New SocketClient(address, 3342)
-            ChangeInf("正在认证")
+            ChangeInf("Validating...")
             Dim msg = BitConverter.GetBytes(account)
             Await Client.ClientStream.WriteAsync(msg, 0, msg.Length)
             Dim buffer(0) As Byte
             Await Client.ClientStream.ReadAsync(buffer, 0, buffer.Length)
             Dim isValid As Boolean = BitConverter.ToBoolean(buffer, 0)
             If isValid Then
-                ChangeInf("连接成功")
+                ChangeInf("Connected.")
                 Return True
             Else
-                ChangeInf("用户名被占用")
+                ChangeInf("Username is occupied.")
                 Return False
             End If
         Catch ex As Exception
-            ChangeInf("连接失败，请重试")
+            ChangeInf("Connection failed.")
             Return False
         End Try
     End Function

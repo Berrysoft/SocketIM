@@ -30,7 +30,7 @@
                 Dim time As Date = Date.FromBinary(BitConverter.ToInt64(recMsg, 0))
                 Dim sender As Integer = BitConverter.ToInt32(recMsg, 8)
                 If sender > 0 Then
-                    Dim message As String = Encoding.Unicode.GetString(recMsg, 12, length - 12)
+                    Dim message As String = Encoding.UTF8.GetString(recMsg, 12, length - 12)
                     RaiseEvent ReceivedMessage(Me, (time, sender, message))
                 ElseIf sender = 0 Then
                     RaiseEvent ReceivedCommand(Me, (time, New ArraySegment(Of Byte)(recMsg, 12, length - 12).ToArray()))
@@ -43,7 +43,7 @@
         Loop
     End Sub
     Public Async Sub Send(receiver As Integer, message As String)
-        Dim buf = BitConverter.GetBytes(receiver).Concat(Encoding.Unicode.GetBytes(message)).ToArray()
+        Dim buf = BitConverter.GetBytes(receiver).Concat(Encoding.UTF8.GetBytes(message)).ToArray()
         Await stream.WriteAsync(buf, 0, buf.Length)
     End Sub
     Public Sub Close()

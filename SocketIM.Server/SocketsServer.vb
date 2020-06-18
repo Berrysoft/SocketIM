@@ -7,7 +7,7 @@
     Public Event ReceivedAccount As EventHandler(Of (EndPoint As IPEndPoint, Account As Integer))
     Public Event ReceivedMessage As EventHandler(Of (Time As Date, Sender As Integer, Receiver As Integer, Message As String))
     Public Event CutOff As EventHandler(Of (EndPoint As IPEndPoint, Account As Integer))
-    Public Sub New(port As Integer, backlog As Integer)
+    Public Sub New(port As Integer)
         Dim ipe As New IPEndPoint(IPAddress.Any, port)
         Dim ipe6 As New IPEndPoint(IPAddress.IPv6Any, port)
         socketWatch = New TcpListener(ipe)
@@ -15,10 +15,10 @@
         socketWatch6 = New TcpListener(ipe6)
         socketWatch6.Start()
     End Sub
-    Public Async Sub Watch()
-        Await Task.WhenAll(GetWatchConnectingDelegate(socketWatch), GetWatchConnectingDelegate(socketWatch6))
+    Public Sub Watch()
+        Task.WaitAll(WatchAsync(socketWatch), WatchAsync(socketWatch6))
     End Sub
-    Private Async Function GetWatchConnectingDelegate(sw As TcpListener) As Task
+    Private Async Function WatchAsync(sw As TcpListener) As Task
         Dim connection As TcpClient
         Do
             Try
